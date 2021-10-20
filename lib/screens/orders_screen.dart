@@ -5,8 +5,33 @@ import 'package:shop_app/providers/orders.dart' show Orders;
 import 'package:shop_app/widget/app_drawer.dart';
 import 'package:shop_app/widget/order_item.dart';
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   static const routeName = '/orders';
+
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  @override
+  void initState() {
+    //No need for Future.delayed if you set Provider to listen:false
+    //because With listen: false, we don't rely on the context and hence the provider can be used in this lifecycle hook without any extra work.
+    // Future.delayed(Duration.zero).then((_) {
+    //   Provider.of<Orders>(context, listen: false).fetchAndSetOrders();
+    // });
+    setState(() {
+      _isLoading = true;
+    });
+    Provider.of<Orders>(context, listen: false).fetchAndSetOrders().then((_) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+    super.initState();
+  }
+
+  var _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -16,12 +41,16 @@ class OrdersScreen extends StatelessWidget {
         title: Text('Your Orders'),
       ),
       drawer: AppDrawer(),
-      body: ListView.builder(
-        itemCount: orderData.orders.length,
-        itemBuilder: (ctx, i) => OrderItem(
-          order: orderData.orders[i],
-        ),
-      ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : ListView.builder(
+              itemCount: orderData.orders.length,
+              itemBuilder: (ctx, i) => OrderItem(
+                order: orderData.orders[i],
+              ),
+            ),
     );
   }
 }
